@@ -25,217 +25,219 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-    /* FONDO GENERAL */
-    .stApp {
-        background:
-            radial-gradient(
-                circle at 15% 15%,
-                rgba(0, 119, 255, 0.18),
-                transparent 30%
-            ),
-            radial-gradient(
-                circle at 85% 85%,
-                rgba(0, 183, 255, 0.12),
-                transparent 30%
-            ),
-            linear-gradient(
-                135deg,
-                #02050b 0%,
-                #06101f 50%,
-                #02050b 100%
-            );
+.stApp {
+    background:
+        radial-gradient(
+            circle at 15% 15%,
+            rgba(0, 119, 255, 0.18),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 85% 85%,
+            rgba(0, 183, 255, 0.12),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            #02050b 0%,
+            #06101f 50%,
+            #02050b 100%
+        );
+    color: #eaf6ff;
+}
 
-        color: #eaf6ff;
-    }
+.block-container {
+    max-width: 1200px;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
 
+h1 {
+    color: #ffffff !important;
+    text-align: center;
+    font-size: 3rem !important;
+    letter-spacing: 4px;
+    font-weight: 800 !important;
 
-    /* CONTENIDO */
-    .block-container {
-        max-width: 1200px;
-        padding-top: 2rem;
-        padding-bottom: 3rem;
-    }
+    text-shadow:
+        0 0 8px #008cff,
+        0 0 20px rgba(0, 140, 255, 0.7);
+}
 
+h2, h3 {
+    color: #55c7ff !important;
+    text-shadow: 0 0 8px rgba(0, 150, 255, 0.4);
+}
 
-    /* TITULO */
-    h1 {
-        color: #ffffff !important;
-        text-align: center;
-        font-size: 3rem !important;
-        letter-spacing: 4px;
-        font-weight: 800 !important;
-
-        text-shadow:
-            0 0 8px #008cff,
-            0 0 20px rgba(0, 140, 255, 0.7);
-    }
-
-
-    h2, h3 {
-        color: #55c7ff !important;
-        text-shadow: 0 0 8px rgba(0, 150, 255, 0.4);
-    }
+p {
+    color: #c8dff2;
+}
 
 
-    p {
-        color: #c8dff2;
-    }
+/* SIDEBAR */
+
+section[data-testid="stSidebar"] {
+    background:
+        linear-gradient(
+            180deg,
+            #02060d,
+            #061427,
+            #02060d
+        );
+
+    border-right: 1px solid #087cff;
+
+    box-shadow:
+        5px 0 25px rgba(0, 110, 255, 0.15);
+}
+
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3 {
+    color: #38b9ff !important;
+}
 
 
-    /* SIDEBAR */
-    section[data-testid="stSidebar"] {
-        background:
-            linear-gradient(
-                180deg,
-                #02060d,
-                #061427,
-                #02060d
-            );
+/* TARJETAS */
 
-        border-right: 1px solid #087cff;
+.card {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(5, 18, 35, 0.95),
+            rgba(2, 8, 17, 0.95)
+        );
 
-        box-shadow:
-            5px 0 25px rgba(0, 110, 255, 0.15);
-    }
+    border: 1px solid rgba(0, 140, 255, 0.45);
+    border-radius: 12px;
 
+    padding: 20px;
+    margin: 15px 0;
 
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3 {
-        color: #38b9ff !important;
-    }
-
-
-    /* TARJETAS */
-    .card {
-        background:
-            linear-gradient(
-                145deg,
-                rgba(5, 18, 35, 0.95),
-                rgba(2, 8, 17, 0.95)
-            );
-
-        border: 1px solid rgba(0, 140, 255, 0.45);
-        border-radius: 12px;
-
-        padding: 20px;
-        margin: 15px 0;
-
-        box-shadow:
-            0 0 20px rgba(0, 100, 255, 0.10),
-            inset 0 0 20px rgba(0, 120, 255, 0.03);
-    }
+    box-shadow:
+        0 0 20px rgba(0, 100, 255, 0.10),
+        inset 0 0 20px rgba(0, 120, 255, 0.03);
+}
 
 
-    /* BOTONES */
-    .stButton > button {
-        width: 100%;
+/* BOTONES */
 
-        background:
-            linear-gradient(
-                135deg,
-                #0057d9,
-                #009dff
-            );
+.stButton > button {
+    width: 100%;
 
-        color: white;
+    background:
+        linear-gradient(
+            135deg,
+            #0057d9,
+            #009dff
+        );
 
-        border: 1px solid #38c4ff;
-        border-radius: 8px;
+    color: white;
 
-        padding: 0.7rem;
+    border: 1px solid #38c4ff;
+    border-radius: 8px;
 
-        font-weight: bold;
-        letter-spacing: 1px;
+    padding: 0.7rem;
 
-        box-shadow:
-            0 0 12px rgba(0, 140, 255, 0.35);
+    font-weight: bold;
+    letter-spacing: 1px;
 
-        transition: 0.2s;
-    }
+    box-shadow:
+        0 0 12px rgba(0, 140, 255, 0.35);
 
+    transition: 0.2s;
+}
 
-    .stButton > button:hover {
-        transform: translateY(-2px);
+.stButton > button:hover {
+    transform: translateY(-2px);
 
-        box-shadow:
-            0 0 20px rgba(0, 170, 255, 0.65);
-    }
-
-
-    /* INPUT */
-    .stTextInput input {
-        background-color: #030914 !important;
-        color: white !important;
-
-        border: 1px solid #087cff !important;
-        border-radius: 7px !important;
-    }
+    box-shadow:
+        0 0 20px rgba(0, 170, 255, 0.65);
+}
 
 
-    .stTextInput input:focus {
-        border-color: #39c3ff !important;
+/* INPUT */
 
-        box-shadow:
-            0 0 12px rgba(0, 150, 255, 0.5) !important;
-    }
+.stTextInput input {
+    background-color: #030914 !important;
+    color: white !important;
 
+    border: 1px solid #087cff !important;
+    border-radius: 7px !important;
+}
 
-    /* SLIDER */
-    div[data-baseweb="slider"] {
-        color: #008cff;
-    }
+.stTextInput input:focus {
+    border-color: #39c3ff !important;
 
-
-    /* DIVISORES */
-    hr {
-        border: none;
-
-        height: 1px;
-
-        background:
-            linear-gradient(
-                90deg,
-                transparent,
-                #008cff,
-                transparent
-            );
-
-        margin: 30px 0;
-    }
+    box-shadow:
+        0 0 12px rgba(0, 150, 255, 0.5) !important;
+}
 
 
-    /* RESULTADO */
-    .analysis {
-        background:
-            linear-gradient(
-                145deg,
-                rgba(4, 17, 34, 0.98),
-                rgba(1, 6, 14, 0.98)
-            );
+/* DIVISORES */
 
-        border-left: 4px solid #00aaff;
+hr {
+    border: none;
 
-        border-top: 1px solid rgba(0, 170, 255, 0.3);
-        border-right: 1px solid rgba(0, 170, 255, 0.2);
-        border-bottom: 1px solid rgba(0, 170, 255, 0.2);
+    height: 1px;
 
-        border-radius: 10px;
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #008cff,
+            transparent
+        );
 
-        padding: 25px;
-
-        margin-top: 20px;
-
-        box-shadow:
-            0 0 25px rgba(0, 130, 255, 0.15);
-    }
+    margin: 30px 0;
+}
 
 
-    /* TEXTO PEQUEÑO */
-    .system-text {
-        color: #6bcaff;
-        font-size: 0.85rem;
-        letter-spacing: 2px;
-    }
+/* RESULTADO */
+
+.analysis {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(4, 17, 34, 0.98),
+            rgba(1, 6, 14, 0.98)
+        );
+
+    border-left: 4px solid #00aaff;
+
+    border-top: 1px solid rgba(0, 170, 255, 0.3);
+    border-right: 1px solid rgba(0, 170, 255, 0.2);
+    border-bottom: 1px solid rgba(0, 170, 255, 0.2);
+
+    border-radius: 10px;
+
+    padding: 25px;
+
+    margin-top: 20px;
+
+    box-shadow:
+        0 0 25px rgba(0, 130, 255, 0.15);
+}
+
+
+.system-text {
+    color: #6bcaff;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+}
+
+
+/* CONTENEDOR DEL TABLERO */
+
+.canvas-container {
+    background: #050b14;
+    border: 2px solid #008cff;
+    border-radius: 12px;
+    padding: 10px;
+
+    box-shadow:
+        0 0 15px rgba(0, 140, 255, 0.35),
+        0 0 40px rgba(0, 80, 255, 0.12);
+}
 
 </style>
 """, unsafe_allow_html=True)
@@ -256,7 +258,7 @@ if "base64_image" not in st.session_state:
 
 
 # ============================================================
-# FUNCIÓN PARA CONVERTIR IMAGEN A BASE64
+# FUNCIÓN BASE64
 # ============================================================
 
 def encode_image_to_base64(image_path):
@@ -281,7 +283,9 @@ def encode_image_to_base64(image_path):
 with st.sidebar:
 
     st.markdown(
-        '<div class="system-text">SYSTEM / AI DRAWING ANALYZER</div>',
+        '<div class="system-text">'
+        'SYSTEM / AI DRAWING ANALYZER'
+        '</div>',
         unsafe_allow_html=True
     )
 
@@ -355,7 +359,7 @@ st.markdown(
         font-size:1.1rem;
         color:#70cfff;
     ">
-        Dibuja · Analiza · Interpreta · Crea
+        DIBUJA · ANALIZA · INTERPRETA · CREA
     </p>
     """,
     unsafe_allow_html=True
@@ -374,7 +378,7 @@ st.markdown(
 
     <p>
     Realiza cualquier dibujo que quieras analizar.
-    Puedes utilizar todo el espacio disponible del tablero.
+    Utiliza el tablero blanco para realizar tu boceto.
     </p>
 
     </div>
@@ -384,11 +388,23 @@ st.markdown(
 
 
 # ============================================================
-# TABLERO
+# TABLERO DE DIBUJO
 # ============================================================
 
-stroke_color = "#000000"
-background_color = "#FFFFFF"
+st.markdown(
+    """
+    <div class="system-text" style="
+        margin-bottom:8px;
+        text-align:center;
+    ">
+        ◈ DRAWING INTERFACE ◈
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# El canvas debe tener un fondo claro para que el dibujo
+# pueda ser analizado correctamente por la IA.
 
 canvas_result = st_canvas(
 
@@ -396,9 +412,9 @@ canvas_result = st_canvas(
 
     stroke_width=stroke_width,
 
-    stroke_color=stroke_color,
+    stroke_color="#000000",
 
-    background_color=background_color,
+    background_color="#FFFFFF",
 
     height=400,
 
@@ -424,7 +440,7 @@ api_key = st.text_input(
 
 
 # ============================================================
-# BOTÓN ANALIZAR
+# BOTÓN
 # ============================================================
 
 analyze_button = st.button(
@@ -434,7 +450,7 @@ analyze_button = st.button(
 
 
 # ============================================================
-# ANÁLISIS
+# ANÁLISIS DEL DIBUJO
 # ============================================================
 
 if analyze_button:
@@ -459,9 +475,9 @@ if analyze_button:
 
             try:
 
-                # ------------------------------------------------
-                # CONVERTIR CANVAS EN IMAGEN
-                # ------------------------------------------------
+                # -----------------------------------------------
+                # CONVERTIR TABLERO EN IMAGEN
+                # -----------------------------------------------
 
                 input_numpy_array = np.array(
                     canvas_result.image_data
@@ -474,9 +490,9 @@ if analyze_button:
                 input_image.save("img.png")
 
 
-                # ------------------------------------------------
-                # CONVERTIR A BASE64
-                # ------------------------------------------------
+                # -----------------------------------------------
+                # BASE64
+                # -----------------------------------------------
 
                 base64_image = encode_image_to_base64(
                     "img.png"
@@ -485,53 +501,46 @@ if analyze_button:
                 st.session_state.base64_image = base64_image
 
 
-                # ------------------------------------------------
+                # -----------------------------------------------
                 # CLIENTE OPENAI
-                # ------------------------------------------------
+                # -----------------------------------------------
 
                 client = OpenAI(
                     api_key=api_key
                 )
 
 
-                # ------------------------------------------------
-                # PROMPT PSICOLÓGICO
-                # ------------------------------------------------
+                # -----------------------------------------------
+                # PROMPT
+                # -----------------------------------------------
 
                 prompt_text = """
                 Analiza el dibujo proporcionado desde una
                 perspectiva psicológica orientativa.
 
                 IMPORTANTE:
-
-                No realices un diagnóstico clínico.
+                Este análisis NO es un diagnóstico psicológico
+                ni psiquiátrico.
 
                 No afirmes que la persona tiene un trastorno,
                 enfermedad mental o condición psicológica.
 
-                El análisis debe diferenciar entre:
+                Primero describe elementos que puedan observarse
+                directamente y después presenta posibles
+                interpretaciones psicológicas.
 
-                A) ELEMENTOS OBSERVABLES
-                Describe solamente aquello que puede verse
-                directamente en el dibujo.
-
-                B) INTERPRETACIONES POSIBLES
-                Explica qué asociaciones psicológicas podrían
-                relacionarse hipotéticamente con esos elementos.
-
-                Analiza los siguientes aspectos:
+                Analiza:
 
                 1. COMPOSICIÓN
-                - Organización del dibujo.
-                - Distribución de elementos.
+                - Organización.
+                - Distribución.
                 - Tamaño de las figuras.
-                - Equilibrio o desequilibrio visual.
+                - Equilibrio visual.
 
                 2. USO DEL ESPACIO
-                - Cantidad de espacio utilizado.
-                - Zonas vacías.
+                - Espacio ocupado.
+                - Espacios vacíos.
                 - Posición de los elementos.
-                - Centralidad o lateralidad.
 
                 3. TRAZO
                 - Intensidad aparente.
@@ -541,49 +550,47 @@ if analyze_button:
                 - Rigidez o fluidez.
 
                 4. FORMAS
-                - Figuras geométricas.
-                - Figuras orgánicas.
+                - Figuras.
                 - Simetría.
                 - Repeticiones.
                 - Elementos dominantes.
 
                 5. DETALLES
-                - Cantidad de detalles.
+                - Nivel de detalle.
                 - Elementos enfatizados.
-                - Elementos ausentes o poco desarrollados.
+                - Elementos secundarios.
 
                 6. COLOR
-                Si existen colores, analiza su distribución
-                y presencia.
+                Si existen colores, analiza su presencia
+                y distribución.
 
-                7. INTERPRETACIÓN PSICOLÓGICA ORIENTATIVA
-                Explica posibles asociaciones psicológicas,
-                utilizando lenguaje probabilístico como:
+                7. POSIBLES ASOCIACIONES PSICOLÓGICAS
+                Explica qué características psicológicas podrían
+                asociarse hipotéticamente con lo observado.
 
+                Utiliza expresiones como:
                 "podría estar relacionado con..."
                 "puede asociarse con..."
                 "una posible interpretación sería..."
 
-                No presentes ninguna interpretación como
-                un hecho comprobado.
+                No presentes las interpretaciones como hechos.
 
-                Finalmente proporciona una breve síntesis
-                general del dibujo.
+                Termina con una síntesis breve.
 
                 Responde en español.
-                Sé claro, estructurado y conciso.
                 """
 
 
-                # ------------------------------------------------
-                # PETICIÓN A OPENAI
-                # ------------------------------------------------
+                # -----------------------------------------------
+                # LLAMADA OPENAI
+                # -----------------------------------------------
 
                 response = client.chat.completions.create(
 
                     model="gpt-4o-mini",
 
                     messages=[
+
                         {
                             "role": "user",
 
@@ -605,18 +612,20 @@ if analyze_button:
 
                             ]
                         }
+
                     ],
 
                     max_tokens=800
                 )
 
 
-                # ------------------------------------------------
-                # OBTENER RESPUESTA
-                # ------------------------------------------------
+                # -----------------------------------------------
+                # RESPUESTA
+                # -----------------------------------------------
 
                 full_response = (
-                    response.choices[0]
+                    response
+                    .choices[0]
                     .message
                     .content
                 )
@@ -630,10 +639,6 @@ if analyze_button:
 
                     st.session_state.analysis_done = True
 
-
-                    # ------------------------------------------------
-                    # MOSTRAR RESULTADO
-                    # ------------------------------------------------
 
                     st.markdown(
                         """
@@ -675,8 +680,8 @@ if st.session_state.analysis_done:
         <h3>📚 MÓDULO NARRATIVO</h3>
 
         <p>
-        Utiliza la interpretación del dibujo para crear
-        automáticamente una historia infantil.
+        Convierte la interpretación del dibujo en una
+        historia infantil creativa.
         </p>
 
         </div>
@@ -691,7 +696,7 @@ if st.session_state.analysis_done:
         if not api_key:
 
             st.warning(
-                "Necesitas introducir nuevamente tu API Key."
+                "Necesitas introducir tu API Key."
             )
 
         else:
@@ -707,25 +712,23 @@ if st.session_state.analysis_done:
                     )
 
                     story_prompt = f"""
-
-                    Basándote en esta interpretación
-                    de un dibujo:
+                    Basándote en esta interpretación:
 
                     {st.session_state.full_response}
 
                     Crea una historia infantil breve,
                     creativa y entretenida.
 
-                    La historia debe:
+                    Debe tener:
 
-                    - Ser apropiada para niños.
-                    - Tener un personaje principal.
-                    - Tener un pequeño conflicto.
-                    - Tener un desarrollo.
-                    - Tener un desenlace.
-                    - Ser imaginativa.
-                    - No mencionar diagnósticos psicológicos.
+                    - Un personaje principal.
+                    - Un pequeño conflicto.
+                    - Un desarrollo.
+                    - Un desenlace.
+                    - Un tono imaginativo.
+                    - Contenido apropiado para niños.
 
+                    No menciones diagnósticos psicológicos.
                     """
 
                     story_response = (
@@ -734,16 +737,17 @@ if st.session_state.analysis_done:
                             model="gpt-4o-mini",
 
                             messages=[
+
                                 {
                                     "role": "user",
                                     "content": story_prompt
                                 }
+
                             ],
 
                             max_tokens=600
                         )
                     )
-
 
                     story = (
                         story_response
@@ -751,7 +755,6 @@ if st.session_state.analysis_done:
                         .message
                         .content
                     )
-
 
                     st.markdown(
                         """
@@ -767,7 +770,6 @@ if st.session_state.analysis_done:
                     )
 
                     st.write(story)
-
 
                 except Exception as e:
 
