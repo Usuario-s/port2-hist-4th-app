@@ -715,7 +715,7 @@ with col_der:
         <div class="ficha">
 
             <div class="ficha-titulo">
-                🔎 Ficha de observación
+                 Ficha de observación
             </div>
 
             <div class="ficha-item">
@@ -753,7 +753,7 @@ with col_der:
         <div class="reflexion">
 
             <div class="reflexion-title">
-                🌿 Mirada reflexiva
+                 Mirada reflexiva
             </div>
 
             <div>
@@ -816,11 +816,11 @@ if st.session_state.analysis_done:
     st.divider()
 
     st.markdown(
-        """
+        
         <div class="resultado-header">
             🧠 Interpretación del dibujo
         </div>
-        """,
+        ,
         unsafe_allow_html=True
     )
 
@@ -840,7 +840,7 @@ if st.session_state.analysis_done:
         <div class="card">
 
             <div class="card-title">
-                📚 ¿Quieres continuar?
+                 ¿Quieres continuar?
             </div>
 
             <div class="card-text">
@@ -897,20 +897,20 @@ if st.session_state.analysis_done:
                     )
 
                     st.markdown(
-                        """
+                        
                         <div class="resultado-header">
-                            📖 Historia inspirada en tu dibujo
+                            Historia inspirada en tu dibujo
                         </div>
-                        """,
+                        ,
                         unsafe_allow_html=True
                     )
 
                     st.markdown(
-                        f"""
+                        f
                         <div class="resultado-body">
                             {story}
                         </div>
-                        """,
+                        ,
                         unsafe_allow_html=True
                     )
 
