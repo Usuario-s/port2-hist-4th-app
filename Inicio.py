@@ -22,7 +22,7 @@ st.set_page_config(
 # ESTILOS FUTURISTAS
 # ============================================================
 
-st.markdown("""
+st.markdown(
 <style>
 
 .stApp {
@@ -240,7 +240,7 @@ hr {
 }
 
 </style>
-""", unsafe_allow_html=True)
+, unsafe_allow_html=True)
 
 
 # ============================================================
@@ -292,20 +292,20 @@ with st.sidebar:
     st.header("⚙️ CONFIGURACIÓN")
 
     st.markdown(
-        """
+        
         <div class="card">
 
-        <h3>🧠 TABLERO INTELIGENTE</h3>
-
-        <p>
-        Realiza un dibujo en el tablero y permite que
-        la inteligencia artificial analice sus características
-        visuales desde una perspectiva psicológica orientativa.
-        </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+            <h3>🧠 TABLERO INTELIGENTE</h3>
+    
+            <p>
+            Realiza un dibujo en el tablero y permite que
+            la inteligencia artificial analice sus características
+            visuales desde una perspectiva psicológica orientativa.
+            </p>
+    
+            </div>
+            ,
+            unsafe_allow_html=True
     )
 
     stroke_width = st.slider(
@@ -371,7 +371,7 @@ st.markdown(
 # ============================================================
 
 st.markdown(
-    """
+    
     <div class="card">
 
     <h3>✦ ÁREA DE DIBUJO</h3>
@@ -382,7 +382,7 @@ st.markdown(
     </p>
 
     </div>
-    """,
+    ,
     unsafe_allow_html=True
 )
 
@@ -392,14 +392,14 @@ st.markdown(
 # ============================================================
 
 st.markdown(
-    """
+    
     <div class="system-text" style="
         margin-bottom:8px;
         text-align:center;
     ">
         ◈ DRAWING INTERFACE ◈
     </div>
-    """,
+    ,
     unsafe_allow_html=True
 )
 
