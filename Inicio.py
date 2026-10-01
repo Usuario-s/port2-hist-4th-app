@@ -711,7 +711,7 @@ with col_izq:
 with col_der:
 
     st.markdown(
-        """
+        
         <div class="ficha">
 
             <div class="ficha-titulo">
@@ -744,12 +744,12 @@ with col_der:
             </div>
 
         </div>
-        """,
+        ,
         unsafe_allow_html=True
     )
 
     st.markdown(
-        """
+        
         <div class="reflexion">
 
             <div class="reflexion-title">
@@ -763,7 +763,7 @@ with col_der:
             </div>
 
         </div>
-        """,
+        ,
         unsafe_allow_html=True
     )
 
@@ -836,7 +836,7 @@ if st.session_state.analysis_done:
     st.write("")
 
     st.markdown(
-        """
+        
         <div class="card">
 
             <div class="card-title">
@@ -849,7 +849,7 @@ if st.session_state.analysis_done:
             </div>
 
         </div>
-        """,
+        ,
         unsafe_allow_html=True
     )
 
