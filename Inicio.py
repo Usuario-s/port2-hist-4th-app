@@ -24,7 +24,7 @@ st.set_page_config(
 # ESTILOS FUTURISTAS
 # =========================================================
 
-st.markdown("""
+st.markdown(
 <style>
 
     /* ---------- FONDO GENERAL ---------- */
