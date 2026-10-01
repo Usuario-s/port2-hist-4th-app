@@ -1,10 +1,11 @@
 import os
-import streamlit as st
 import base64
-from openai import OpenAI
+import streamlit as st
 import openai
-from PIL import Image
 import numpy as np
+
+from openai import OpenAI
+from PIL import Image
 from streamlit_drawable_canvas import st_canvas
 
 
@@ -15,88 +16,222 @@ from streamlit_drawable_canvas import st_canvas
 st.set_page_config(
     page_title="Consultorio de Interpretación",
     page_icon="🧠",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
+
+
+# =========================================================
+# PALETA VINTAGE
+# =========================================================
+
+CREMA = "#F1EEE6"
+CREMA_CLARO = "#F8F6F0"
+BLANCO = "#FFFFFF"
+
+AZUL_OSCURO = "#203A48"
+AZUL = "#365B6B"
+AZUL_MEDIO = "#5F7F8D"
+
+TABLERO = "#B8CCD2"
+TABLERO_HOVER = "#ACC3CA"
+
+NEGRO = "#20282C"
+GRIS = "#52616A"
+GRIS_CLARO = "#D7DEE0"
+
+BORDE = "#AEBCC1"
 
 
 # =========================================================
 # SESSION STATE
 # =========================================================
 
-if 'analysis_done' not in st.session_state:
+if "analysis_done" not in st.session_state:
     st.session_state.analysis_done = False
 
-if 'full_response' not in st.session_state:
+if "full_response" not in st.session_state:
     st.session_state.full_response = ""
 
-if 'base64_image' not in st.session_state:
+if "base64_image" not in st.session_state:
     st.session_state.base64_image = ""
 
 
 # =========================================================
-# PALETA
+# FUNCIONES
 # =========================================================
 
-CREMA = "#F3F0E8"
-BLANCO = "#FFFFFF"
+def encode_image_to_base64(image_path):
+    try:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(
+                image_file.read()
+            ).decode("utf-8")
+    except FileNotFoundError:
+        return ""
 
-AZUL_OSCURO = "#263F4C"
-AZUL = "#466778"
-AZUL_MEDIO = "#668796"
 
-AZUL_TABLERO = "#B9CBD1"
-AZUL_TABLERO_OSCURO = "#A9BEC6"
+def analizar_dibujo(canvas_data, api_key):
 
-NEGRO = "#20272B"
-GRIS = "#59666C"
+    input_numpy_array = np.array(canvas_data)
 
-BORDE = "#B8C3C7"
-BORDE_OSCURO = "#82949C"
+    input_image = Image.fromarray(
+        input_numpy_array.astype("uint8")
+    ).convert("RGBA")
+
+    image_path = "img.png"
+    input_image.save(image_path)
+
+    base64_image = encode_image_to_base64(image_path)
+
+    st.session_state.base64_image = base64_image
+
+    prompt_text = """
+Analiza este dibujo desde una perspectiva psicológica simbólica y reflexiva.
+
+IMPORTANTE:
+No hagas diagnósticos psicológicos, médicos o psiquiátricos.
+No afirmes que un elemento demuestra una enfermedad,
+trastorno, trauma o condición psicológica.
+
+La interpretación debe utilizar expresiones como:
+"podría representar", "puede sugerir", "una posible interpretación".
+
+Organiza el análisis en estas categorías:
+
+1. OBSERVACIÓN VISUAL
+Describe brevemente qué aparece en el dibujo.
+
+2. COMPOSICIÓN Y ESPACIO
+Analiza la distribución de los elementos, tamaño,
+posición, espacios vacíos y equilibrio visual.
+
+3. TRAZOS Y FORMAS
+Observa presión aparente, dirección, repetición,
+curvas, formas geométricas, irregularidades y nivel de detalle.
+
+4. COLOR
+Analiza los colores utilizados y sus posibles asociaciones
+simbólicas o emocionales.
+
+5. POSIBLE SIMBOLISMO
+Explica qué podrían representar los principales elementos
+desde una interpretación simbólica.
+
+6. POSIBLES TEMAS O EMOCIONES
+Menciona temas o emociones que podrían estar relacionados
+con el dibujo, dejando claro que son interpretaciones
+y no conclusiones psicológicas.
+
+7. PREGUNTAS DE REFLEXIÓN
+Propón 3 preguntas que podrían ayudar a la persona
+a explicar qué significa el dibujo para ella.
+
+Sé claro, breve y respetuoso.
+Responde en español.
+"""
+
+    response = openai.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": prompt_text
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{base64_image}"
+                        }
+                    }
+                ]
+            }
+        ],
+        max_tokens=700
+    )
+
+    return response.choices[0].message.content
+
 
 # =========================================================
 # CSS
 # =========================================================
 
-st.markdown(f"""
-<style>
+st.markdown(
+    f"""
+    <style>
 
-    /* =====================================================
+    /* =========================
        FONDO GENERAL
-       ===================================================== */
+       ========================= */
 
     .stApp {{
         background:
             radial-gradient(
-                circle at 10% 10%,
-                rgba(255,255,255,0.7),
+                circle at 15% 10%,
+                rgba(95,127,141,0.16),
+                transparent 28%
+            ),
+            radial-gradient(
+                circle at 90% 80%,
+                rgba(54,91,107,0.10),
                 transparent 30%
             ),
             {CREMA};
-
         color: {NEGRO};
     }}
 
-    .main {{
-        background-color: transparent;
+    .main .block-container {{
+        max-width: 1450px;
+        padding-top: 2rem;
+        padding-bottom: 4rem;
     }}
 
 
-    /* =====================================================
-       TIPOGRAFÍA
-       ===================================================== */
+    /* =========================
+       SIDEBAR
+       ========================= */
 
-    h1, h2, h3, h4 {{
+    section[data-testid="stSidebar"] {{
+        background:
+            linear-gradient(
+                180deg,
+                {AZUL_OSCURO} 0%,
+                {AZUL} 55%,
+                {AZUL_MEDIO} 100%
+            );
+        border-right: 4px solid {TABLERO};
+    }}
+
+    section[data-testid="stSidebar"] * {{
+        color: {BLANCO} !important;
+    }}
+
+    section[data-testid="stSidebar"] .stMarkdown {{
+        color: {BLANCO};
+    }}
+
+
+    /* =========================
+       TITULOS
+       ========================= */
+
+    h1, h2, h3 {{
         color: {AZUL_OSCURO} !important;
+        letter-spacing: 0.3px;
     }}
 
     p, label {{
-        color: {NEGRO} !important;
+        color: {NEGRO};
     }}
 
 
-    /* =====================================================
-       ENCABEZADO
-       ===================================================== */
+    /* =========================
+       CABECERA
+       ========================= */
 
     .header-consultorio {{
         background:
@@ -105,482 +240,257 @@ st.markdown(f"""
                 {AZUL_OSCURO},
                 {AZUL}
             );
-
+        padding: 32px 38px;
         border-radius: 18px;
-
-        padding: 28px 35px;
-
-        margin-bottom: 28px;
-
+        margin-bottom: 26px;
+        border: 2px solid rgba(255,255,255,0.35);
         box-shadow:
-            0 8px 25px rgba(38,63,76,0.20);
-
-        position: relative;
-
-        overflow: hidden;
-
-        transition: all 0.3s ease;
+            0 12px 30px rgba(32,40,44,0.18);
+        transition: all 0.25s ease;
     }}
 
     .header-consultorio:hover {{
-        transform: translateY(-2px);
-
+        transform: translateY(-3px);
         box-shadow:
-            0 12px 30px rgba(38,63,76,0.28);
-    }}
-
-    .header-consultorio::after {{
-        content: "";
-
-        position: absolute;
-
-        width: 180px;
-        height: 180px;
-
-        right: -60px;
-        top: -80px;
-
-        border: 2px solid rgba(255,255,255,0.15);
-
-        border-radius: 50%;
+            0 18px 38px rgba(32,40,44,0.24);
     }}
 
     .header-titulo {{
-        color: white !important;
-
-        font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-        font-size: 40px;
-
-        font-weight: bold;
-
+        color: white;
+        font-size: 34px;
+        font-weight: 800;
         letter-spacing: 2px;
-
-        margin: 0;
+        margin-bottom: 6px;
     }}
 
     .header-subtitulo {{
-        color: #DCE7EA !important;
-
-        font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
+        color: #E5EEF1;
         font-size: 16px;
-
-        margin-top: 7px;
     }}
 
-    .header-linea {{
-        width: 70px;
-
+    .linea-decorativa {{
+        width: 100%;
         height: 3px;
-
-        background: white;
-
-        margin-top: 18px;
-
-        border-radius: 5px;
+        margin-top: 20px;
+        background: {TABLERO};
+        border-radius: 20px;
     }}
 
 
-    /* =====================================================
-       TARJETAS PRINCIPALES
-       ===================================================== */
+    /* =========================
+       TARJETAS
+       ========================= */
 
-    .tarjeta {{
-        background-color: rgba(255,255,255,0.94);
-
-        border: 1px solid {BORDE};
-
+    .card {{
+        background: {BLANCO};
+        border: 2px solid {BORDE};
         border-radius: 16px;
-
-        padding: 23px;
-
-        margin-bottom: 18px;
-
+        padding: 24px;
+        margin-bottom: 20px;
         box-shadow:
-            0 5px 18px rgba(38,63,76,0.09);
-
+            0 7px 18px rgba(32,40,44,0.10);
         transition:
             transform 0.25s ease,
             box-shadow 0.25s ease,
             border-color 0.25s ease;
     }}
 
-    .tarjeta:hover {{
+    .card:hover {{
         transform: translateY(-4px);
-
-        border-color: {AZUL_MEDIO};
-
+        border-color: {AZUL};
         box-shadow:
-            0 12px 28px rgba(38,63,76,0.16);
+            0 14px 28px rgba(32,40,44,0.16);
     }}
 
-    .tarjeta-titulo {{
-        color: {AZUL_OSCURO} !important;
-
-        font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
+    .card-title {{
+        color: {AZUL_OSCURO};
         font-size: 21px;
-
-        font-weight: bold;
-
-        margin-bottom: 10px;
+        font-weight: 800;
+        margin-bottom: 8px;
     }}
 
-    .tarjeta-texto {{
-        color: {GRIS} !important;
-
-        font-size: 14px;
-
-        line-height: 1.65;
+    .card-text {{
+        color: {GRIS};
+        font-size: 15px;
+        line-height: 1.6;
     }}
 
 
-    /* =====================================================
-       ETIQUETA VINTAGE
-       ===================================================== */
+    /* =========================
+       TABLERO
+       ========================= */
 
-    .etiqueta {{
-        display: inline-block;
-
-        background-color: {AZUL_OSCURO};
-
-        color: white !important;
-
-        padding: 5px 11px;
-
-        border-radius: 20px;
-
-        font-size: 11px;
-
-        letter-spacing: 1px;
-
-        text-transform: uppercase;
-
-        margin-bottom: 10px;
-    }}
-
-
-    /* =====================================================
-       PANEL DERECHO
-       ===================================================== */
-
-    .ficha-consultorio {{
-        background-color: #E5ECEE;
-
-        border: 1px solid {BORDE};
-
-        border-radius: 16px;
-
-        padding: 23px;
-
-        margin-bottom: 18px;
-
+    .tablero-wrapper {{
+        background: {AZUL_OSCURO};
+        padding: 10px;
+        border-radius: 18px;
+        border: 2px solid {BORDE};
         box-shadow:
-            0 5px 18px rgba(38,63,76,0.10);
-
-        position: relative;
-
+            0 12px 25px rgba(32,40,44,0.18);
         transition: all 0.25s ease;
     }}
 
-    .ficha-consultorio:hover {{
-        transform: translateY(-4px);
-
-        background-color: #E9EFF1;
-
+    .tablero-wrapper:hover {{
+        border-color: {AZUL};
         box-shadow:
-            0 12px 26px rgba(38,63,76,0.15);
+            0 18px 34px rgba(32,40,44,0.24);
     }}
 
-    .ficha-consultorio::before {{
-        content: "✦";
+    .tablero-label {{
+        color: {AZUL_OSCURO};
+        font-weight: 800;
+        font-size: 18px;
+        margin-bottom: 10px;
+    }}
 
-        position: absolute;
 
-        top: 13px;
-        right: 17px;
+    /* =========================
+       FICHA DERECHA
+       ========================= */
 
-        color: {AZUL_MEDIO};
+    .ficha {{
+        background:
+            linear-gradient(
+                145deg,
+                {BLANCO},
+                {CREMA_CLARO}
+            );
+        border: 2px solid {BORDE};
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow:
+            0 8px 20px rgba(32,40,44,0.10);
+        transition: all 0.25s ease;
+    }}
 
-        font-size: 17px;
+    .ficha:hover {{
+        transform: translateY(-4px);
+        box-shadow:
+            0 15px 28px rgba(32,40,44,0.16);
+        border-color: {AZUL};
     }}
 
     .ficha-titulo {{
-        color: {AZUL_OSCURO} !important;
-
-        font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
+        color: {AZUL_OSCURO};
         font-size: 21px;
-
-        font-weight: bold;
-
-        margin-bottom: 14px;
+        font-weight: 800;
+        margin-bottom: 18px;
     }}
 
     .ficha-item {{
-        background-color: rgba(255,255,255,0.75);
-
-        border-left: 3px solid {AZUL};
-
-        padding: 10px 12px;
-
-        margin-bottom: 9px;
-
-        border-radius: 0 8px 8px 0;
-
-        color: {NEGRO} !important;
-
-        font-size: 13px;
-
+        background: {CREMA};
+        border-left: 5px solid {AZUL};
+        border-radius: 9px;
+        padding: 13px;
+        margin: 10px 0;
+        color: {GRIS};
         transition: all 0.2s ease;
     }}
 
     .ficha-item:hover {{
         transform: translateX(5px);
-
+        background: {TABLERO};
         border-left-color: {AZUL_OSCURO};
+    }}
 
-        background-color: white;
+    .ficha-item b {{
+        color: {AZUL_OSCURO};
     }}
 
 
-    /* =====================================================
+    /* =========================
        PANEL REFLEXIVO
-       ===================================================== */
+       ========================= */
 
     .reflexion {{
         background:
             linear-gradient(
                 135deg,
-                #D7E3E7,
-                #EAF0F1
+                {TABLERO},
+                #D7E2E5
             );
-
-        border: 1px solid #B8C9CE;
-
+        border: 2px solid {BORDE};
         border-radius: 16px;
-
         padding: 22px;
-
-        margin-bottom: 18px;
-
+        margin-top: 20px;
         box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.8),
-            0 5px 18px rgba(38,63,76,0.08);
-
+            0 7px 18px rgba(32,40,44,0.10);
         transition: all 0.25s ease;
     }}
 
     .reflexion:hover {{
+        transform: translateY(-3px);
         box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.9),
-            0 10px 25px rgba(38,63,76,0.14);
+            0 14px 25px rgba(32,40,44,0.15);
     }}
 
-    .reflexion-titulo {{
-        color: {AZUL_OSCURO} !important;
-
-        font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-        font-weight: bold;
-
-        font-size: 19px;
-    }}
-
-    .reflexion-texto {{
-        color: {NEGRO} !important;
-
-        line-height: 1.6;
-
-        font-size: 13px;
+    .reflexion-title {{
+        color: {AZUL_OSCURO};
+        font-weight: 800;
+        font-size: 20px;
+        margin-bottom: 8px;
     }}
 
 
-    /* =====================================================
-       TABLERO
-       ===================================================== */
-
-    .tablero-contenedor {{
-        background:
-            linear-gradient(
-                145deg,
-                #AFC3CA,
-                #C4D4D8
-            );
-
-        border: 1px solid {BORDE_OSCURO};
-
-        border-radius: 18px;
-
-        padding: 14px;
-
-        box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.75),
-            0 8px 25px rgba(38,63,76,0.15);
-
-        transition: all 0.3s ease;
-    }}
-
-    .tablero-contenedor:hover {{
-        box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.9),
-            0 12px 30px rgba(38,63,76,0.20);
-    }}
-
-
-    /* =====================================================
-       AVISO
-       ===================================================== */
-
-    .aviso {{
-        background-color: #E9E5DC;
-
-        border: 1px solid #D1CCC1;
-
-        border-radius: 11px;
-
-        padding: 13px 16px;
-
-        color: {NEGRO} !important;
-
-        font-size: 12px;
-
-        line-height: 1.55;
-
-        margin-top: 12px;
-    }}
-
-
-    /* =====================================================
+    /* =========================
        BOTONES
-       ===================================================== */
+       ========================= */
 
     .stButton > button {{
         background:
             linear-gradient(
                 135deg,
-                {AZUL_OSCURO},
-                {AZUL}
-            );
-
+                {AZUL},
+                {AZUL_OSCURO}
+            ) !important;
         color: white !important;
-
-        border: none;
-
-        border-radius: 10px;
-
-        min-height: 45px;
-
-        font-weight: bold;
-
-        letter-spacing: 0.3px;
-
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 11px 22px !important;
+        font-weight: 700 !important;
+        transition: all 0.2s ease !important;
         box-shadow:
-            0 4px 10px rgba(38,63,76,0.18);
-
-        transition:
-            all 0.2s ease;
+            0 5px 12px rgba(32,40,44,0.18) !important;
     }}
 
     .stButton > button:hover {{
-        background:
-            linear-gradient(
-                135deg,
-                {NEGRO},
-                {AZUL_OSCURO}
-            );
-
-        transform: translateY(-2px);
-
+        transform: translateY(-2px) !important;
         box-shadow:
-            0 7px 16px rgba(38,63,76,0.25);
-
-        color: white !important;
-    }}
-
-    .stButton > button:active {{
-        transform: translateY(1px);
+            0 9px 18px rgba(32,40,44,0.25) !important;
+        filter: brightness(1.08);
     }}
 
 
-    /* =====================================================
-       SIDEBAR
-       ===================================================== */
-
-    section[data-testid="stSidebar"] {{
-        background:
-            linear-gradient(
-                180deg,
-                #E2E8E9,
-                #D7E0E2
-            );
-
-        border-right: 1px solid {BORDE};
-
-        box-shadow:
-            4px 0 15px rgba(38,63,76,0.06);
-    }}
-
-    section[data-testid="stSidebar"] h1,
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3 {{
-        color: {AZUL_OSCURO} !important;
-
-        font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-    }}
-
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] label {{
-        color: {NEGRO} !important;
-    }}
-
-
-    /* =====================================================
+    /* =========================
        INPUTS
-       ===================================================== */
+       ========================= */
 
-    input {{
+    .stTextInput input {{
+        background: white !important;
         color: {NEGRO} !important;
+        border: 2px solid {BORDE} !important;
+        border-radius: 9px !important;
+    }}
 
-        background-color:
-            white !important;
-
-        border-color:
-            {BORDE} !important;
+    .stTextInput input:focus {{
+        border-color: {AZUL} !important;
+        box-shadow:
+            0 0 0 2px rgba(54,91,107,0.15) !important;
     }}
 
 
-    /* =====================================================
-       DIVISORES
-       ===================================================== */
+    /* =========================
+       SLIDER
+       ========================= */
 
-    hr {{
-        border-color: {BORDE};
+    .stSlider {{
+        padding-top: 5px;
     }}
 
 
-    /* =====================================================
+    /* =========================
        RESULTADO
-       ===================================================== */
+       ========================= */
 
     .resultado-header {{
         background:
@@ -589,55 +499,41 @@ st.markdown(f"""
                 {AZUL_OSCURO},
                 {AZUL}
             );
-
-        color: white !important;
-
-        padding: 17px 21px;
-
-        border-radius:
-            14px 14px 0 0;
-
-        font-family:
-            Georgia,
-            "Times New Roman",
-            serif;
-
-        font-size: 22px;
-
-        font-weight: bold;
-
-        box-shadow:
-            0 4px 12px rgba(38,63,76,0.15);
+        color: white;
+        padding: 18px 22px;
+        border-radius: 14px 14px 0 0;
+        font-size: 21px;
+        font-weight: 800;
     }}
 
-    .resultado-cuerpo {{
-        background-color: white;
-
-        border:
-            1px solid {BORDE};
-
+    .resultado-body {{
+        background: white;
+        border: 2px solid {BORDE};
         border-top: none;
-
-        border-radius:
-            0 0 14px 14px;
-
+        border-radius: 0 0 14px 14px;
         padding: 25px;
-
-        color: {NEGRO} !important;
-
+        color: {NEGRO};
         line-height: 1.7;
-
-        box-shadow:
-            0 7px 20px rgba(38,63,76,0.08);
     }}
 
 
-    /* =====================================================
+    /* =========================
+       DIVISOR
+       ========================= */
+
+    hr {{
+        border: none;
+        border-top: 2px solid {BORDE};
+        margin: 30px 0;
+    }}
+
+
+    /* =========================
        SCROLLBAR
-       ===================================================== */
+       ========================= */
 
     ::-webkit-scrollbar {{
-        width: 8px;
+        width: 9px;
     }}
 
     ::-webkit-scrollbar-track {{
@@ -646,54 +542,32 @@ st.markdown(f"""
 
     ::-webkit-scrollbar-thumb {{
         background: {AZUL_MEDIO};
-
         border-radius: 10px;
     }}
 
-</style>
-""", unsafe_allow_html=True)
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # =========================================================
-# FUNCIÓN BASE64
-# =========================================================
-
-def encode_image_to_base64(image_path):
-
-    try:
-
-        with open(image_path, "rb") as image_file:
-
-            encoded_image = base64.b64encode(
-                image_file.read()
-            ).decode("utf-8")
-
-            return encoded_image
-
-    except FileNotFoundError:
-
-        return "Error: La imagen no se encontró."
-
-
-# =========================================================
-# ENCABEZADO
+# CABECERA
 # =========================================================
 
 st.markdown(
     """
     <div class="header-consultorio">
-
         <div class="header-titulo">
             🧠 CONSULTORIO DE INTERPRETACIÓN
         </div>
 
         <div class="header-subtitulo">
-            Un espacio para observar, interpretar y reflexionar
-            sobre lo que expresamos mediante el dibujo.
+            Un espacio para explorar el significado simbólico
+            de aquello que expresamos mediante el dibujo.
         </div>
 
-        <div class="header-linea"></div>
-
+        <div class="linea-decorativa"></div>
     </div>
     """,
     unsafe_allow_html=True
@@ -706,43 +580,46 @@ st.markdown(
 
 with st.sidebar:
 
-    st.markdown("## 🧠 Consultorio")
+    st.markdown("## 🗂️ CONSULTORIO")
 
-    st.write(
-        "Una experiencia de exploración visual mediante "
-        "inteligencia artificial."
+    st.markdown(
+        """
+        Esta herramienta utiliza inteligencia artificial
+        para observar e interpretar simbólicamente
+        un dibujo.
+
+        <br>
+
+        **No realiza diagnósticos psicológicos.**
+        La interpretación funciona como una herramienta
+        de reflexión.
+        """,
+        unsafe_allow_html=True
     )
 
-    st.divider()
+    st.markdown("---")
 
-    st.subheader("🖌️ Herramientas")
+    st.markdown("### ⚙️ Herramientas")
 
     stroke_width = st.slider(
-        "Ancho del lápiz",
-        1,
-        30,
-        5
+        "Grosor del trazo",
+        min_value=1,
+        max_value=25,
+        value=5
     )
 
-    st.divider()
+    stroke_color = st.color_picker(
+        "Color del trazo",
+        "#20282C"
+    )
 
-    st.subheader("🔐 Conexión")
+    st.markdown("---")
+
+    st.markdown("### 🔐 Acceso")
 
     ke = st.text_input(
         "Ingresa tu API Key",
         type="password"
-    )
-
-    st.divider()
-
-    st.markdown(
-        """
-        **ESPACIO DE REFLEXIÓN**
-
-        La interpretación generada es simbólica.
-        No constituye un diagnóstico psicológico
-        ni reemplaza la evaluación de un profesional.
-        """
     )
 
 
@@ -750,86 +627,68 @@ with st.sidebar:
 # API
 # =========================================================
 
-os.environ["OPENAI_API_KEY"] = ke
-
-api_key = os.environ.get(
-    "OPENAI_API_KEY",
-    ""
-)
+api_key = ke.strip()
 
 if api_key:
-
-    client = OpenAI(
-        api_key=api_key
-    )
+    os.environ["OPENAI_API_KEY"] = api_key
+    client = OpenAI(api_key=api_key)
 
 
 # =========================================================
-# COLUMNAS
+# CONTENIDO PRINCIPAL
 # =========================================================
 
-col1, col2 = st.columns(
-    [1.65, 1],
+col_izq, col_der = st.columns(
+    [2.2, 1],
     gap="large"
 )
 
 
 # =========================================================
-# TABLERO
+# COLUMNA IZQUIERDA
 # =========================================================
 
-with col1:
+with col_izq:
 
     st.markdown(
         """
-        <div class="tarjeta">
-
-            <span class="etiqueta">
-                SESIÓN DE DIBUJO
-            </span>
-
-            <div class="tarjeta-titulo">
-                🖼️ Expresa lo primero que venga a tu mente
+        <div class="card">
+            <div class="card-title">
+                ✏️ Área de expresión
             </div>
 
-            <div class="tarjeta-texto">
-                No necesitas crear una obra artística.
-                Dibuja libremente y deja que los elementos
-                aparezcan de forma espontánea.
+            <div class="card-text">
+                Dibuja libremente. No existe una forma correcta
+                o incorrecta de hacerlo. Cuando termines,
+                podrás solicitar una interpretación.
             </div>
-
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    # -----------------------------------------------------
-    # TABLERO
-    # -----------------------------------------------------
-
     st.markdown(
-        '<div class="tablero-contenedor">',
+        '<div class="tablero-label">TABLERO DE EXPRESIÓN</div>',
+        unsafe_allow_html=True
+    )
+
+    # Contenedor visual oscuro SOLAMENTE como marco.
+    # El interior completo del canvas es azul grisáceo.
+    st.markdown(
+        '<div class="tablero-wrapper">',
         unsafe_allow_html=True
     )
 
     canvas_result = st_canvas(
-
-        fill_color="rgba(38,63,76,0.08)",
-
+        fill_color="rgba(32,40,44,0.04)",
         stroke_width=stroke_width,
-
-        stroke_color="#20272B",
-
-        background_color=AZUL_TABLERO,
-
-        height=420,
-
-        width=650,
-
+        stroke_color=stroke_color,
+        background_color=TABLERO,
+        height=430,
+        width=700,
         drawing_mode="freedraw",
-
-        key="canvas"
-
+        key="canvas",
+        display_toolbar=False
     )
 
     st.markdown(
@@ -837,29 +696,23 @@ with col1:
         unsafe_allow_html=True
     )
 
-    st.markdown(
-        """
-        <div class="aviso">
+    st.write("")
 
-        💭 <b>Pequeña indicación:</b>
-        no pienses demasiado qué deberías dibujar.
-        La idea es trabajar de manera espontánea.
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    analizar_button = st.button(
+        "🔎 ANALIZAR DIBUJO",
+        use_container_width=True
     )
 
 
 # =========================================================
-# INFORMACIÓN DERECHA
+# COLUMNA DERECHA
 # =========================================================
 
-with col2:
+with col_der:
 
     st.markdown(
         """
-        <div class="ficha-consultorio">
+        <div class="ficha">
 
             <div class="ficha-titulo">
                 🔎 Ficha de observación
@@ -872,52 +725,41 @@ with col2:
 
             <div class="ficha-item">
                 <b>02 · Composición</b><br>
-                Distribución, posición y tamaño.
+                Distribución, tamaño y ubicación.
             </div>
 
             <div class="ficha-item">
                 <b>03 · Trazos</b><br>
-                Líneas, formas y nivel de detalle.
+                Formas, líneas, repetición y detalles.
             </div>
 
             <div class="ficha-item">
                 <b>04 · Color</b><br>
-                Tonos y contrastes presentes.
+                Tonos y posibles asociaciones simbólicas.
             </div>
 
             <div class="ficha-item">
                 <b>05 · Simbolismo</b><br>
-                Posibles asociaciones e interpretaciones.
+                Posibles significados del dibujo.
             </div>
 
         </div>
         """,
         unsafe_allow_html=True
     )
-
 
     st.markdown(
         """
         <div class="reflexion">
 
-            <div class="reflexion-titulo">
+            <div class="reflexion-title">
                 🌿 Mirada reflexiva
             </div>
 
-            <br>
-
-            <div class="reflexion-texto">
-
-            La IA observará el dibujo desde una perspectiva
-            simbólica. En lugar de establecer conclusiones
-            sobre la persona, propondrá diferentes
-            interpretaciones posibles.
-
-            <br><br>
-
-            El significado final siempre depende de la
-            historia y contexto de quien realizó el dibujo.
-
+            <div>
+                El análisis busca generar preguntas
+                e interpretaciones, no establecer
+                diagnósticos.
             </div>
 
         </div>
@@ -927,178 +769,42 @@ with col2:
 
 
 # =========================================================
-# BOTÓN ANALIZAR
+# ANALIZAR
 # =========================================================
 
-st.markdown("")
+if analizar_button:
 
-analyze_button = st.button(
-    "🔎  ANALIZAR MI DIBUJO",
-    type="secondary",
-    use_container_width=True
-)
+    if not api_key:
 
+        st.warning(
+            "🔐 Ingresa tu API Key en el panel lateral antes de analizar."
+        )
 
-# =========================================================
-# ANÁLISIS
-# =========================================================
+    elif canvas_result.image_data is None:
 
-if (
-    canvas_result.image_data is not None
-    and api_key
-    and analyze_button
-):
+        st.warning(
+            "✏️ Primero realiza un dibujo en el tablero."
+        )
 
-    with st.spinner(
-        "Observando los elementos del dibujo..."
-    ):
+    else:
 
-        try:
+        with st.spinner("Observando e interpretando el dibujo..."):
 
-            # ---------------------------------------------
-            # CONVERTIR CANVAS
-            # ---------------------------------------------
+            try:
 
-            input_numpy_array = np.array(
-                canvas_result.image_data
-            )
-
-            input_image = Image.fromarray(
-                input_numpy_array.astype("uint8")
-            ).convert("RGBA")
-
-            input_image.save("img.png")
-
-
-            # ---------------------------------------------
-            # BASE64
-            # ---------------------------------------------
-
-            base64_image = encode_image_to_base64(
-                "img.png"
-            )
-
-            st.session_state.base64_image = base64_image
-
-
-            # ---------------------------------------------
-            # PROMPT
-            # ---------------------------------------------
-
-            prompt_text = """
-            Analiza cuidadosamente el dibujo proporcionado.
-
-            Realiza una interpretación simbólica y reflexiva.
-            NO realices un diagnóstico psicológico.
-
-            Analiza:
-
-            1. Lo que aparece objetivamente.
-            2. Elementos principales.
-            3. Distribución y uso del espacio.
-            4. Tamaño y posición.
-            5. Formas y líneas.
-            6. Nivel de detalle.
-            7. Colores.
-            8. Posibles significados simbólicos.
-            9. Posibles emociones o temas asociados.
-
-            NO afirmes que un elemento demuestra ansiedad,
-            depresión, trauma, trastornos mentales,
-            personalidad u otra condición psicológica.
-
-            Utiliza expresiones como:
-
-            "podría representar..."
-            "una posible interpretación..."
-            "podría estar relacionado con..."
-            "también podría tener otros significados..."
-
-            Organiza la respuesta así:
-
-            👁️ LO QUE VEO
-
-            🧩 ELEMENTOS Y SIMBOLISMO
-
-            🌿 POSIBLES EMOCIONES O TEMAS
-
-            💭 PREGUNTAS PARA REFLEXIONAR
-
-            Finaliza indicando que el significado real depende
-            del contexto personal de quien realizó el dibujo.
-            """
-
-
-            # ---------------------------------------------
-            # OPENAI
-            # ---------------------------------------------
-
-            response = openai.chat.completions.create(
-
-                model="gpt-4o-mini",
-
-                messages=[
-
-                    {
-                        "role": "user",
-
-                        "content": [
-
-                            {
-                                "type": "text",
-                                "text": prompt_text
-                            },
-
-                            {
-                                "type": "image_url",
-
-                                "image_url": {
-
-                                    "url":
-                                    f"data:image/png;base64,{base64_image}"
-
-                                }
-
-                            }
-
-                        ]
-
-                    }
-
-                ],
-
-                max_tokens=800
-            )
-
-
-            # ---------------------------------------------
-            # RESPUESTA
-            # ---------------------------------------------
-
-            full_response = ""
-
-            if response.choices[0].message.content:
-
-                full_response = (
-                    response
-                    .choices[0]
-                    .message
-                    .content
+                full_response = analizar_dibujo(
+                    canvas_result.image_data,
+                    api_key
                 )
 
+                st.session_state.full_response = full_response
+                st.session_state.analysis_done = True
 
-            st.session_state.full_response = (
-                full_response
-            )
+            except Exception as e:
 
-            st.session_state.analysis_done = True
-
-
-        except Exception as e:
-
-            st.error(
-                f"Ocurrió un error al analizar el dibujo: {e}"
-            )
+                st.error(
+                    f"Ocurrió un error durante el análisis: {e}"
+                )
 
 
 # =========================================================
@@ -1112,7 +818,7 @@ if st.session_state.analysis_done:
     st.markdown(
         """
         <div class="resultado-header">
-            🧠 Ficha de interpretación
+            🧠 Interpretación del dibujo
         </div>
         """,
         unsafe_allow_html=True
@@ -1120,41 +826,31 @@ if st.session_state.analysis_done:
 
     st.markdown(
         f"""
-        <div class="resultado-cuerpo">
-
-        {st.session_state.full_response}
-
+        <div class="resultado-body">
+            {st.session_state.full_response}
         </div>
         """,
         unsafe_allow_html=True
     )
+
+    st.write("")
 
     st.markdown(
         """
-        <div class="aviso">
+        <div class="card">
 
-        🌿 <b>Nota:</b>
-        esta interpretación es una exploración simbólica
-        generada a partir de elementos visuales.
-        No constituye una evaluación psicológica,
-        diagnóstico ni conclusión clínica.
+            <div class="card-title">
+                📚 ¿Quieres continuar?
+            </div>
+
+            <div class="card-text">
+                Puedes convertir la interpretación obtenida
+                en una pequeña historia inspirada en el dibujo.
+            </div>
 
         </div>
         """,
         unsafe_allow_html=True
-    )
-
-
-# =========================================================
-# HISTORIA
-# =========================================================
-
-if st.session_state.analysis_done:
-
-    st.divider()
-
-    st.subheader(
-        "📚 Una segunda forma de explorar tu dibujo"
     )
 
     if st.button(
@@ -1162,63 +858,64 @@ if st.session_state.analysis_done:
         use_container_width=True
     ):
 
-        with st.spinner(
-            "Construyendo la historia..."
-        ):
+        if not api_key:
 
-            story_prompt = f"""
-            Basándote en esta interpretación del dibujo:
+            st.warning("Ingresa tu API Key.")
 
-            "{st.session_state.full_response}"
+        else:
 
-            crea una historia infantil breve,
-            creativa y entretenida.
+            with st.spinner("Creando historia..."):
 
-            Convierte los elementos visuales
-            en personajes, lugares o situaciones
-            imaginativas.
+                try:
 
-            No presentes las interpretaciones psicológicas
-            como hechos.
-            """
+                    story_prompt = f"""
+                    Basándote en esta descripción:
 
-            story_response = (
-                openai.chat.completions.create(
+                    {st.session_state.full_response}
 
-                    model="gpt-4o-mini",
+                    Crea una historia infantil breve,
+                    creativa y entretenida inspirada en
+                    los elementos descritos.
+                    """
 
-                    messages=[
+                    story_response = openai.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": story_prompt
+                            }
+                        ],
+                        max_tokens=500
+                    )
 
-                        {
-                            "role": "user",
-                            "content": story_prompt
-                        }
+                    story = (
+                        story_response
+                        .choices[0]
+                        .message
+                        .content
+                    )
 
-                    ],
+                    st.markdown(
+                        """
+                        <div class="resultado-header">
+                            📖 Historia inspirada en tu dibujo
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
 
-                    max_tokens=500
-                )
-            )
+                    st.markdown(
+                        f"""
+                        <div class="resultado-body">
+                            {story}
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
 
-            st.markdown(
-                "### 📖 Tu historia"
-            )
+                except Exception as e:
 
-            st.write(
-                story_response
-                .choices[0]
-                .message
-                .content
-            )
-
-
-# =========================================================
-# API WARNING
-# =========================================================
-
-if not api_key:
-
-    st.warning(
-        "🔐 Ingresa tu API Key en el menú lateral "
-        "para comenzar la sesión."
-    )
+                    st.error(
+                        f"No fue posible crear la historia: {e}"
+                    )
