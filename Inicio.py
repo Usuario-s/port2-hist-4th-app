@@ -1,6 +1,6 @@
-import os
-import base64
 import streamlit as st
+import base64
+from io import BytesIO
 from openai import OpenAI
 from PIL import Image
 import numpy as np
@@ -8,243 +8,19 @@ from streamlit_drawable_canvas import st_canvas
 
 
 # ============================================================
-# CONFIGURACIÓN
+# CONFIGURACIÓN DE STREAMLIT
 # ============================================================
 
 st.set_page_config(
     page_title="Tablero Inteligente",
     page_icon="🧠",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 
 # ============================================================
-# ESTILOS FUTURISTAS
-# ============================================================
-
-st.markdown(
-<style>
-
-.stApp {
-    background:
-        radial-gradient(
-            circle at 15% 15%,
-            rgba(0, 119, 255, 0.18),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 85% 85%,
-            rgba(0, 183, 255, 0.12),
-            transparent 30%
-        ),
-        linear-gradient(
-            135deg,
-            #02050b 0%,
-            #06101f 50%,
-            #02050b 100%
-        );
-    color: #eaf6ff;
-}
-
-.block-container {
-    max-width: 1200px;
-    padding-top: 2rem;
-    padding-bottom: 3rem;
-}
-
-h1 {
-    color: #ffffff !important;
-    text-align: center;
-    font-size: 3rem !important;
-    letter-spacing: 4px;
-    font-weight: 800 !important;
-
-    text-shadow:
-        0 0 8px #008cff,
-        0 0 20px rgba(0, 140, 255, 0.7);
-}
-
-h2, h3 {
-    color: #55c7ff !important;
-    text-shadow: 0 0 8px rgba(0, 150, 255, 0.4);
-}
-
-p {
-    color: #c8dff2;
-}
-
-
-/* SIDEBAR */
-
-section[data-testid="stSidebar"] {
-    background:
-        linear-gradient(
-            180deg,
-            #02060d,
-            #061427,
-            #02060d
-        );
-
-    border-right: 1px solid #087cff;
-
-    box-shadow:
-        5px 0 25px rgba(0, 110, 255, 0.15);
-}
-
-section[data-testid="stSidebar"] h2,
-section[data-testid="stSidebar"] h3 {
-    color: #38b9ff !important;
-}
-
-
-/* TARJETAS */
-
-.card {
-    background:
-        linear-gradient(
-            145deg,
-            rgba(5, 18, 35, 0.95),
-            rgba(2, 8, 17, 0.95)
-        );
-
-    border: 1px solid rgba(0, 140, 255, 0.45);
-    border-radius: 12px;
-
-    padding: 20px;
-    margin: 15px 0;
-
-    box-shadow:
-        0 0 20px rgba(0, 100, 255, 0.10),
-        inset 0 0 20px rgba(0, 120, 255, 0.03);
-}
-
-
-/* BOTONES */
-
-.stButton > button {
-    width: 100%;
-
-    background:
-        linear-gradient(
-            135deg,
-            #0057d9,
-            #009dff
-        );
-
-    color: white;
-
-    border: 1px solid #38c4ff;
-    border-radius: 8px;
-
-    padding: 0.7rem;
-
-    font-weight: bold;
-    letter-spacing: 1px;
-
-    box-shadow:
-        0 0 12px rgba(0, 140, 255, 0.35);
-
-    transition: 0.2s;
-}
-
-.stButton > button:hover {
-    transform: translateY(-2px);
-
-    box-shadow:
-        0 0 20px rgba(0, 170, 255, 0.65);
-}
-
-
-/* INPUT */
-
-.stTextInput input {
-    background-color: #030914 !important;
-    color: white !important;
-
-    border: 1px solid #087cff !important;
-    border-radius: 7px !important;
-}
-
-.stTextInput input:focus {
-    border-color: #39c3ff !important;
-
-    box-shadow:
-        0 0 12px rgba(0, 150, 255, 0.5) !important;
-}
-
-
-/* DIVISORES */
-
-hr {
-    border: none;
-
-    height: 1px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            #008cff,
-            transparent
-        );
-
-    margin: 30px 0;
-}
-
-
-/* RESULTADO */
-
-.analysis {
-    background:
-        linear-gradient(
-            145deg,
-            rgba(4, 17, 34, 0.98),
-            rgba(1, 6, 14, 0.98)
-        );
-
-    border-left: 4px solid #00aaff;
-
-    border-top: 1px solid rgba(0, 170, 255, 0.3);
-    border-right: 1px solid rgba(0, 170, 255, 0.2);
-    border-bottom: 1px solid rgba(0, 170, 255, 0.2);
-
-    border-radius: 10px;
-
-    padding: 25px;
-
-    margin-top: 20px;
-
-    box-shadow:
-        0 0 25px rgba(0, 130, 255, 0.15);
-}
-
-
-.system-text {
-    color: #6bcaff;
-    font-size: 0.85rem;
-    letter-spacing: 2px;
-}
-
-
-/* CONTENEDOR DEL TABLERO */
-
-.canvas-container {
-    background: #050b14;
-    border: 2px solid #008cff;
-    border-radius: 12px;
-    padding: 10px;
-
-    box-shadow:
-        0 0 15px rgba(0, 140, 255, 0.35),
-        0 0 40px rgba(0, 80, 255, 0.12);
-}
-
-</style>
-, unsafe_allow_html=True)
-
-
-# ============================================================
-# SESSION STATE
+# ESTADO DE LA APLICACIÓN
 # ============================================================
 
 if "analysis_done" not in st.session_state:
@@ -253,27 +29,243 @@ if "analysis_done" not in st.session_state:
 if "full_response" not in st.session_state:
     st.session_state.full_response = ""
 
-if "base64_image" not in st.session_state:
-    st.session_state.base64_image = ""
+if "api_key" not in st.session_state:
+    st.session_state.api_key = ""
 
 
 # ============================================================
-# FUNCIÓN BASE64
+# DISEÑO
 # ============================================================
 
-def encode_image_to_base64(image_path):
+st.markdown(
+    """
+    <style>
 
-    try:
+    /* ==============================
+       FONDO
+       ============================== */
 
-        with open(image_path, "rb") as image_file:
+    .stApp {
+        background:
+            radial-gradient(
+                circle at 10% 10%,
+                rgba(0, 110, 255, 0.20),
+                transparent 28%
+            ),
+            radial-gradient(
+                circle at 90% 90%,
+                rgba(0, 180, 255, 0.12),
+                transparent 30%
+            ),
+            linear-gradient(
+                135deg,
+                #020409 0%,
+                #06101e 50%,
+                #020409 100%
+            );
+    }
 
-            return base64.b64encode(
-                image_file.read()
-            ).decode("utf-8")
 
-    except FileNotFoundError:
+    /* ==============================
+       CONTENEDOR
+       ============================== */
 
-        return ""
+    .block-container {
+        max-width: 1150px;
+        padding-top: 2rem;
+    }
+
+
+    /* ==============================
+       TITULOS
+       ============================== */
+
+    h1 {
+        color: white !important;
+        text-align: center;
+        font-size: 3rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 4px;
+
+        text-shadow:
+            0 0 8px rgba(0, 153, 255, 0.9),
+            0 0 25px rgba(0, 100, 255, 0.5);
+    }
+
+    h2,
+    h3 {
+        color: #5bc7ff !important;
+    }
+
+
+    /* ==============================
+       TEXTO
+       ============================== */
+
+    p {
+        color: #c9dced;
+    }
+
+
+    /* ==============================
+       SIDEBAR
+       ============================== */
+
+    section[data-testid="stSidebar"] {
+        background:
+            linear-gradient(
+                180deg,
+                #02050b,
+                #061426,
+                #02050b
+            );
+
+        border-right: 1px solid #087cff;
+    }
+
+
+    /* ==============================
+       TARJETAS
+       ============================== */
+
+    .panel {
+        background: rgba(3, 14, 28, 0.90);
+
+        border: 1px solid rgba(0, 140, 255, 0.45);
+
+        border-radius: 12px;
+
+        padding: 20px;
+
+        margin-bottom: 20px;
+
+        box-shadow:
+            0 0 20px rgba(0, 100, 255, 0.12);
+    }
+
+
+    /* ==============================
+       TABLERO
+       ============================== */
+
+    .board-title {
+        text-align: center;
+
+        color: #53c7ff;
+
+        font-size: 0.85rem;
+
+        letter-spacing: 3px;
+
+        margin-bottom: 8px;
+    }
+
+
+    /* ==============================
+       BOTONES
+       ============================== */
+
+    .stButton > button {
+        width: 100%;
+
+        background:
+            linear-gradient(
+                135deg,
+                #0055d9,
+                #009cff
+            );
+
+        color: white;
+
+        border: 1px solid #4ac9ff;
+
+        border-radius: 8px;
+
+        font-weight: bold;
+
+        letter-spacing: 1px;
+
+        padding: 0.65rem;
+
+        box-shadow:
+            0 0 12px rgba(0, 140, 255, 0.30);
+
+        transition: 0.2s;
+    }
+
+
+    .stButton > button:hover {
+        box-shadow:
+            0 0 22px rgba(0, 170, 255, 0.60);
+
+        transform: translateY(-2px);
+    }
+
+
+    /* ==============================
+       INPUT
+       ============================== */
+
+    .stTextInput input {
+        background-color: #030914 !important;
+
+        color: white !important;
+
+        border: 1px solid #087cff !important;
+
+        border-radius: 7px !important;
+    }
+
+
+    /* ==============================
+       RESULTADO IA
+       ============================== */
+
+    .result-box {
+        background:
+            linear-gradient(
+                145deg,
+                rgba(3, 17, 34, 0.98),
+                rgba(1, 6, 14, 0.98)
+            );
+
+        border-left: 4px solid #00aaff;
+
+        border-radius: 10px;
+
+        padding: 20px;
+
+        margin-top: 15px;
+
+        box-shadow:
+            0 0 25px rgba(0, 130, 255, 0.15);
+    }
+
+
+    /* ==============================
+       DIVISOR
+       ============================== */
+
+    hr {
+        border: none;
+
+        height: 1px;
+
+        background:
+            linear-gradient(
+                90deg,
+                transparent,
+                #008cff,
+                transparent
+            );
+
+        margin: 30px 0;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ============================================================
@@ -282,34 +274,29 @@ def encode_image_to_base64(image_path):
 
 with st.sidebar:
 
+    st.markdown("## 🧠 SISTEMA")
+
     st.markdown(
-        '<div class="system-text">'
-        'SYSTEM / AI DRAWING ANALYZER'
-        '</div>',
+        """
+        <div class="panel">
+
+        <h3>Tablero Inteligente</h3>
+
+        <p>
+        Realiza un dibujo y utiliza inteligencia artificial
+        para obtener una interpretación visual y psicológica
+        orientativa.
+        </p>
+
+        </div>
+        """,
         unsafe_allow_html=True
     )
 
-    st.header("⚙️ CONFIGURACIÓN")
-
-    st.markdown(
-        
-        <div class="card">
-
-            <h3>🧠 TABLERO INTELIGENTE</h3>
-    
-            <p>
-            Realiza un dibujo en el tablero y permite que
-            la inteligencia artificial analice sus características
-            visuales desde una perspectiva psicológica orientativa.
-            </p>
-    
-            </div>
-            ,
-            unsafe_allow_html=True
-    )
+    st.markdown("### ⚙️ Propiedades del tablero")
 
     stroke_width = st.slider(
-        "✏️ Grosor del lápiz",
+        "Grosor del lápiz",
         min_value=1,
         max_value=30,
         value=5
@@ -319,17 +306,17 @@ with st.sidebar:
 
     st.markdown(
         """
-        <div class="card">
+        <div class="panel">
 
         <b>PROTOCOLO</b>
 
         <br><br>
 
-        01 — Realiza un dibujo<br>
-        02 — Introduce tu API Key<br>
-        03 — Analiza el dibujo<br>
-        04 — Consulta la interpretación<br>
-        05 — Genera una historia
+        01 · Dibujar<br>
+        02 · Introducir API Key<br>
+        03 · Analizar<br>
+        04 · Interpretar<br>
+        05 · Crear historia
 
         </div>
         """,
@@ -342,26 +329,19 @@ with st.sidebar:
 # ============================================================
 
 st.markdown(
-    """
-    <div class="system-text" style="text-align:center;">
-        ARTIFICIAL INTELLIGENCE / VISUAL ANALYSIS
-    </div>
-    """,
+    "<p style='text-align:center; color:#52c7ff; "
+    "letter-spacing:3px;'>"
+    "ARTIFICIAL INTELLIGENCE / VISUAL ANALYSIS"
+    "</p>",
     unsafe_allow_html=True
 )
 
 st.title("◈ TABLERO INTELIGENTE ◈")
 
 st.markdown(
-    """
-    <p style="
-        text-align:center;
-        font-size:1.1rem;
-        color:#70cfff;
-    ">
-        DIBUJA · ANALIZA · INTERPRETA · CREA
-    </p>
-    """,
+    "<p style='text-align:center; font-size:1.1rem;'>"
+    "DIBUJA · ANALIZA · INTERPRETA · CREA"
+    "</p>",
     unsafe_allow_html=True
 )
 
@@ -371,40 +351,33 @@ st.markdown(
 # ============================================================
 
 st.markdown(
-    
-    <div class="card">
+    """
+    <div class="panel">
 
-    <h3>✦ ÁREA DE DIBUJO</h3>
+    <h3>✦ Área de dibujo</h3>
 
     <p>
-    Realiza cualquier dibujo que quieras analizar.
-    Utiliza el tablero blanco para realizar tu boceto.
+    Realiza libremente el dibujo que deseas analizar.
+    Puedes utilizar todo el tablero.
     </p>
 
     </div>
-    ,
+    """,
     unsafe_allow_html=True
 )
 
 
 # ============================================================
-# TABLERO DE DIBUJO
+# TABLERO
 # ============================================================
 
 st.markdown(
-    
-    <div class="system-text" style="
-        margin-bottom:8px;
-        text-align:center;
-    ">
-        ◈ DRAWING INTERFACE ◈
-    </div>
-    ,
+    "<div class='board-title'>"
+    "◈ DRAWING INTERFACE ◈"
+    "</div>",
     unsafe_allow_html=True
 )
 
-# El canvas debe tener un fondo claro para que el dibujo
-# pueda ser analizado correctamente por la IA.
 
 canvas_result = st_canvas(
 
@@ -422,7 +395,7 @@ canvas_result = st_canvas(
 
     drawing_mode="freedraw",
 
-    key="canvas"
+    key="drawing_canvas"
 )
 
 
@@ -430,243 +403,271 @@ canvas_result = st_canvas(
 # API KEY
 # ============================================================
 
-st.markdown("### 🔐 CONEXIÓN CON INTELIGENCIA ARTIFICIAL")
+st.markdown("### 🔐 CONEXIÓN CON IA")
 
 api_key = st.text_input(
-    "Ingresa tu OpenAI API Key",
+    "OpenAI API Key",
     type="password",
     placeholder="sk-..."
 )
 
+# Guardar la clave durante la sesión
+if api_key:
+    st.session_state.api_key = api_key
+
+api_key = st.session_state.api_key
+
 
 # ============================================================
-# BOTÓN
+# BOTÓN ANALIZAR
 # ============================================================
 
 analyze_button = st.button(
-    "◈ ANALIZAR DIBUJO",
-    type="primary"
+    "◈ ANALIZAR DIBUJO"
 )
 
 
 # ============================================================
-# ANÁLISIS DEL DIBUJO
+# PROCESAR DIBUJO
 # ============================================================
 
 if analyze_button:
 
+    # --------------------------------------------------------
+    # COMPROBAR API KEY
+    # --------------------------------------------------------
+
     if not api_key:
 
-        st.warning(
-            "⚠️ Primero debes ingresar tu API Key."
+        st.error(
+            "❌ Debes ingresar una API Key."
         )
 
-    elif canvas_result.image_data is None:
+        st.stop()
 
-        st.warning(
-            "⚠️ Primero debes realizar un dibujo."
+
+    # --------------------------------------------------------
+    # COMPROBAR TABLERO
+    # --------------------------------------------------------
+
+    if canvas_result.image_data is None:
+
+        st.error(
+            "❌ No se pudo obtener el dibujo del tablero."
         )
 
-    else:
+        st.stop()
+
+
+    try:
 
         with st.spinner(
-            "🧠 Analizando patrones visuales..."
+            "🧠 La inteligencia artificial está analizando el dibujo..."
         ):
 
-            try:
+            # =================================================
+            # OBTENER IMAGEN DEL CANVAS
+            # =================================================
 
-                # -----------------------------------------------
-                # CONVERTIR TABLERO EN IMAGEN
-                # -----------------------------------------------
+            canvas_array = np.array(
+                canvas_result.image_data
+            )
 
-                input_numpy_array = np.array(
-                    canvas_result.image_data
-                )
+            # Convertir a uint8
+            canvas_array = canvas_array.astype(
+                np.uint8
+            )
 
-                input_image = Image.fromarray(
-                    input_numpy_array.astype("uint8")
-                ).convert("RGBA")
-
-                input_image.save("img.png")
-
-
-                # -----------------------------------------------
-                # BASE64
-                # -----------------------------------------------
-
-                base64_image = encode_image_to_base64(
-                    "img.png"
-                )
-
-                st.session_state.base64_image = base64_image
+            # Crear imagen
+            image = Image.fromarray(
+                canvas_array
+            )
 
 
-                # -----------------------------------------------
-                # CLIENTE OPENAI
-                # -----------------------------------------------
+            # =================================================
+            # CONVERTIR A PNG EN MEMORIA
+            # =================================================
 
-                client = OpenAI(
-                    api_key=api_key
-                )
+            image_buffer = BytesIO()
 
+            image.save(
+                image_buffer,
+                format="PNG"
+            )
 
-                # -----------------------------------------------
-                # PROMPT
-                # -----------------------------------------------
-
-                prompt_text = """
-                Analiza el dibujo proporcionado desde una
-                perspectiva psicológica orientativa.
-
-                IMPORTANTE:
-                Este análisis NO es un diagnóstico psicológico
-                ni psiquiátrico.
-
-                No afirmes que la persona tiene un trastorno,
-                enfermedad mental o condición psicológica.
-
-                Primero describe elementos que puedan observarse
-                directamente y después presenta posibles
-                interpretaciones psicológicas.
-
-                Analiza:
-
-                1. COMPOSICIÓN
-                - Organización.
-                - Distribución.
-                - Tamaño de las figuras.
-                - Equilibrio visual.
-
-                2. USO DEL ESPACIO
-                - Espacio ocupado.
-                - Espacios vacíos.
-                - Posición de los elementos.
-
-                3. TRAZO
-                - Intensidad aparente.
-                - Continuidad.
-                - Dirección.
-                - Repetición.
-                - Rigidez o fluidez.
-
-                4. FORMAS
-                - Figuras.
-                - Simetría.
-                - Repeticiones.
-                - Elementos dominantes.
-
-                5. DETALLES
-                - Nivel de detalle.
-                - Elementos enfatizados.
-                - Elementos secundarios.
-
-                6. COLOR
-                Si existen colores, analiza su presencia
-                y distribución.
-
-                7. POSIBLES ASOCIACIONES PSICOLÓGICAS
-                Explica qué características psicológicas podrían
-                asociarse hipotéticamente con lo observado.
-
-                Utiliza expresiones como:
-                "podría estar relacionado con..."
-                "puede asociarse con..."
-                "una posible interpretación sería..."
-
-                No presentes las interpretaciones como hechos.
-
-                Termina con una síntesis breve.
-
-                Responde en español.
-                """
+            image_buffer.seek(0)
 
 
-                # -----------------------------------------------
-                # LLAMADA OPENAI
-                # -----------------------------------------------
+            # =================================================
+            # BASE64
+            # =================================================
 
-                response = client.chat.completions.create(
+            encoded_image = base64.b64encode(
+                image_buffer.read()
+            ).decode("utf-8")
 
-                    model="gpt-4o-mini",
 
-                    messages=[
+            # =================================================
+            # CLIENTE OPENAI
+            # =================================================
 
-                        {
-                            "role": "user",
+            client = OpenAI(
+                api_key=api_key
+            )
 
-                            "content": [
 
-                                {
-                                    "type": "text",
-                                    "text": prompt_text
-                                },
+            # =================================================
+            # PROMPT
+            # =================================================
 
-                                {
-                                    "type": "image_url",
+            prompt = """
+            Analiza el dibujo que aparece en la imagen.
 
-                                    "image_url": {
-                                        "url":
-                                        f"data:image/png;base64,{base64_image}"
-                                    }
+            Quiero una interpretación psicológica ORIENTATIVA
+            basada únicamente en los elementos visuales
+            presentes en el dibujo.
+
+            IMPORTANTE:
+
+            No realices un diagnóstico psicológico o psiquiátrico.
+
+            No afirmes que la persona tiene una enfermedad,
+            trastorno o condición mental.
+
+            Diferencia claramente entre:
+
+            1. OBSERVACIONES:
+            Lo que realmente se puede observar en el dibujo.
+
+            2. POSIBLES INTERPRETACIONES:
+            Asociaciones psicológicas hipotéticas que podrían
+            relacionarse con esos elementos.
+
+            Analiza:
+
+            • Composición.
+            • Distribución de los elementos.
+            • Uso del espacio.
+            • Tamaño de las figuras.
+            • Posición de los elementos.
+            • Intensidad aparente del trazo.
+            • Repetición de líneas.
+            • Formas.
+            • Simetría.
+            • Cantidad de detalles.
+            • Elementos principales y secundarios.
+            • Uso del color si existe.
+            • Elementos que llamen especialmente la atención.
+
+            Después explica posibles asociaciones psicológicas
+            utilizando lenguaje prudente:
+
+            "podría estar relacionado con..."
+            "podría asociarse con..."
+            "una posible interpretación sería..."
+
+            No presentes estas interpretaciones como hechos.
+
+            Termina con una síntesis general.
+
+            Responde en español.
+            Sé claro y estructurado.
+            """
+
+
+            # =================================================
+            # LLAMADA A OPENAI
+            # =================================================
+
+            response = client.chat.completions.create(
+
+                model="gpt-4o-mini",
+
+                messages=[
+                    {
+                        "role": "user",
+
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": prompt
+                            },
+
+                            {
+                                "type": "image_url",
+
+                                "image_url": {
+                                    "url":
+                                    "data:image/png;base64,"
+                                    + encoded_image
                                 }
+                            }
+                        ]
+                    }
+                ],
 
-                            ]
-                        }
+                max_tokens=900
+            )
 
-                    ],
 
-                    max_tokens=800
+            # =================================================
+            # OBTENER RESPUESTA
+            # =================================================
+
+            result = (
+                response
+                .choices[0]
+                .message
+                .content
+            )
+
+
+            if not result:
+
+                raise Exception(
+                    "La IA no devolvió ninguna respuesta."
                 )
 
 
-                # -----------------------------------------------
-                # RESPUESTA
-                # -----------------------------------------------
+            # Guardar resultado
+            st.session_state.full_response = result
 
-                full_response = (
-                    response
-                    .choices[0]
-                    .message
-                    .content
-                )
+            st.session_state.analysis_done = True
 
 
-                if full_response:
+            # =================================================
+            # MOSTRAR RESULTADO
+            # =================================================
 
-                    st.session_state.full_response = (
-                        full_response
-                    )
+            st.markdown(
+                """
+                <div class="result-box">
 
-                    st.session_state.analysis_done = True
+                <h3>
+                🧠 INTERPRETACIÓN DEL DIBUJO
+                </h3>
 
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
-                    st.markdown(
-                        """
-                        <div class="analysis">
-
-                        <h3>
-                        🧠 INTERPRETACIÓN PSICOLÓGICA
-                        </h3>
-
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-                    st.markdown(
-                        full_response
-                    )
+            st.markdown(result)
 
 
-            except Exception as e:
+    except Exception as error:
 
-                st.error(
-                    f"❌ Ocurrió un error: {e}"
-                )
+        st.error(
+            "❌ Error durante el análisis:"
+        )
+
+        st.code(
+            str(error)
+        )
 
 
 # ============================================================
-# HISTORIA INFANTIL
+# HISTORIA
 # ============================================================
 
 if st.session_state.analysis_done:
@@ -675,13 +676,13 @@ if st.session_state.analysis_done:
 
     st.markdown(
         """
-        <div class="card">
+        <div class="panel">
 
         <h3>📚 MÓDULO NARRATIVO</h3>
 
         <p>
-        Convierte la interpretación del dibujo en una
-        historia infantil creativa.
+        Puedes transformar el análisis del dibujo en una
+        historia infantil.
         </p>
 
         </div>
@@ -689,47 +690,52 @@ if st.session_state.analysis_done:
         unsafe_allow_html=True
     )
 
-    if st.button(
+    create_story = st.button(
         "✦ CREAR HISTORIA INFANTIL"
-    ):
+    )
+
+
+    if create_story:
 
         if not api_key:
 
-            st.warning(
-                "Necesitas introducir tu API Key."
+            st.error(
+                "❌ Debes ingresar tu API Key."
             )
 
         else:
 
-            with st.spinner(
-                "📖 Construyendo historia..."
-            ):
+            try:
 
-                try:
+                with st.spinner(
+                    "📖 Creando historia..."
+                ):
 
                     client = OpenAI(
                         api_key=api_key
                     )
 
+
                     story_prompt = f"""
-                    Basándote en esta interpretación:
+                    Crea una historia infantil breve y creativa
+                    utilizando como inspiración esta interpretación
+                    de un dibujo:
 
                     {st.session_state.full_response}
 
-                    Crea una historia infantil breve,
-                    creativa y entretenida.
+                    La historia debe:
 
-                    Debe tener:
+                    - Ser apropiada para niños.
+                    - Tener un protagonista.
+                    - Tener un pequeño conflicto.
+                    - Tener un desarrollo.
+                    - Tener un final.
+                    - Ser imaginativa.
+                    - No mencionar diagnósticos psicológicos.
 
-                    - Un personaje principal.
-                    - Un pequeño conflicto.
-                    - Un desarrollo.
-                    - Un desenlace.
-                    - Un tono imaginativo.
-                    - Contenido apropiado para niños.
-
-                    No menciones diagnósticos psicológicos.
+                    Escribe la historia en español.
                     """
+
 
                     story_response = (
                         client.chat.completions.create(
@@ -737,17 +743,16 @@ if st.session_state.analysis_done:
                             model="gpt-4o-mini",
 
                             messages=[
-
                                 {
                                     "role": "user",
                                     "content": story_prompt
                                 }
-
                             ],
 
-                            max_tokens=600
+                            max_tokens=700
                         )
                     )
+
 
                     story = (
                         story_response
@@ -756,9 +761,10 @@ if st.session_state.analysis_done:
                         .content
                     )
 
+
                     st.markdown(
                         """
-                        <div class="analysis">
+                        <div class="result-box">
 
                         <h3>
                         📖 TU HISTORIA
@@ -769,10 +775,15 @@ if st.session_state.analysis_done:
                         unsafe_allow_html=True
                     )
 
-                    st.write(story)
+                    st.markdown(story)
 
-                except Exception as e:
 
-                    st.error(
-                        f"❌ Error creando la historia: {e}"
-                    )
+            except Exception as error:
+
+                st.error(
+                    "❌ Error creando la historia:"
+                )
+
+                st.code(
+                    str(error)
+                )
