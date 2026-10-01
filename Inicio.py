@@ -1,3 +1,4 @@
+```python
 import os
 import streamlit as st
 import base64
@@ -8,135 +9,179 @@ import numpy as np
 import pandas as pd
 from streamlit_drawable_canvas import st_canvas
 
-Expert=" "
-profile_imgenh=" "
+# =========================================================
+# CONFIGURACIÓN DE LA PÁGINA
+# =========================================================
 
-# Inicializar session_state
-if 'analysis_done' not in st.session_state:
-    st.session_state.analysis_done = False
-if 'full_response' not in st.session_state:
-    st.session_state.full_response = ""
-if 'base64_image' not in st.session_state:
-    st.session_state.base64_image = ""
-    
-def encode_image_to_base64(image_path):
-    try:
-        with open(image_path, "rb") as image_file:
-            encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
-            return encoded_image
-    except FileNotFoundError:
-        return "Error: La imagen no se encontró en la ruta especificada."
-
-# Streamlit 
-st.set_page_config(page_title='Tablero Inteligente')
-st.title('Tablero Inteligente')
-with st.sidebar:
-    st.subheader("Acerca de:")
-    st.subheader("En esta aplicación veremos la capacidad que ahora tiene una máquina de interpretar un boceto")
-st.subheader("Dibuja el boceto en el panel y presiona el botón para analizarla")
-
-# Add canvas component
-drawing_mode = "freedraw"
-stroke_width = st.sidebar.slider('Selecciona el ancho de línea', 1, 30, 5)
-stroke_color = "#000000" 
-bg_color = '#FFFFFF'
-
-# Create a canvas component
-canvas_result = st_canvas(
-    fill_color="rgba(255, 165, 0, 0.3)",
-    stroke_width=stroke_width,
-    stroke_color=stroke_color,
-    background_color=bg_color,
-    height=300,
-    width=400,
-    drawing_mode=drawing_mode,
-    key="canvas",
+st.set_page_config(
+    page_title="Tablero Inteligente",
+    page_icon="🧠",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-ke = st.text_input('Ingresa tu Clave', type="password")
-os.environ['OPENAI_API_KEY'] = ke
+# =========================================================
+# ESTILOS FUTURISTAS
+# =========================================================
 
-# Retrieve the OpenAI API Key
-api_key = os.environ['OPENAI_API_KEY']
+st.markdown("""
+<style>
 
-# Initialize the OpenAI client with the API key
-client = OpenAI(api_key=api_key)
+    /* ---------- FONDO GENERAL ---------- */
 
-analyze_button = st.button("Analiza la imagen", type="secondary")
+    .stApp {
+        background:
+            radial-gradient(circle at 15% 20%, rgba(0, 110, 255, 0.15), transparent 30%),
+            radial-gradient(circle at 85% 80%, rgba(0, 180, 255, 0.10), transparent 30%),
+            linear-gradient(135deg, #02040a 0%, #050b16 50%, #02040a 100%);
+        color: #e8f4ff;
+    }
 
-# Check if an image has been uploaded, if the API key is available, and if the button has been pressed
-if canvas_result.image_data is not None and api_key and analyze_button:
+    /* ---------- CONTENEDOR PRINCIPAL ---------- */
 
-    with st.spinner("Analizando ..."):
-        # Encode the image
-        input_numpy_array = np.array(canvas_result.image_data)
-        input_image = Image.fromarray(input_numpy_array.astype('uint8')).convert('RGBA')
-        input_image.save('img.png')
-        
-        # Codificar la imagen en base64
-        base64_image = encode_image_to_base64("img.png")
-        st.session_state.base64_image = base64_image
-            
-        prompt_text = (f"Describe in spanish briefly the image")
-    
-        # Make the request to the OpenAI API
-        try:
-            full_response = ""
-            message_placeholder = st.empty()
-            response = openai.chat.completions.create(
-              model= "gpt-4o-mini",
-              messages=[
-                {
-                   "role": "user",
-                   "content": [
-                     {"type": "text", "text": prompt_text},
-                     {
-                       "type": "image_url",
-                       "image_url": {
-                         "url": f"data:image/png;base64,{base64_image}",
-                       },
-                     },
-                   ],
-                  }
-                ],
-              max_tokens=500,
-              )
-            
-            if response.choices[0].message.content is not None:
-                    full_response += response.choices[0].message.content
-                    message_placeholder.markdown(full_response + "▌")
-            
-            # Final update to placeholder after the stream ends
-            message_placeholder.markdown(full_response)
-            
-            # Guardar en session_state
-            st.session_state.full_response = full_response
-            st.session_state.analysis_done = True
-            
-            if Expert== profile_imgenh:
-               st.session_state.mi_respuesta= response.choices[0].message.content
-    
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+        max-width: 1250px;
+    }
 
-# Mostrar la funcionalidad de crear historia si ya se hizo el análisis
-if st.session_state.analysis_done:
-    st.divider()
-    st.subheader("📚 ¿Quieres crear una historia?")
-    
-    if st.button("✨ Crear historia infantil"):
-        with st.spinner("Creando historia..."):
-            story_prompt = f"Basándote en esta descripción: '{st.session_state.full_response}', crea una historia infantil breve y entretenida. La historia debe ser creativa y apropiada para niños."
-            
-            story_response = openai.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": story_prompt}],
-                max_tokens=500,
-            )
-            
-            st.markdown("**📖 Tu historia:**")
-            st.write(story_response.choices[0].message.content)
+    /* ---------- TITULO ---------- */
 
-# Warnings for user action required
-if not api_key:
-    st.warning("Por favor ingresa tu API key.")
+    h1 {
+        color: #ffffff !important;
+        font-size: 3rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 3px;
+        text-shadow:
+            0 0 8px rgba(0, 153, 255, 0.9),
+            0 0 25px rgba(0, 110, 255, 0.5);
+    }
+
+    h2, h3 {
+        color: #7dcfff !important;
+        letter-spacing: 1px;
+    }
+
+    p, label {
+        color: #c8ddf0 !important;
+    }
+
+    /* ---------- SIDEBAR ---------- */
+
+    section[data-testid="stSidebar"] {
+        background:
+            linear-gradient(
+                180deg,
+                #030812 0%,
+                #061326 50%,
+                #02050c 100%
+            );
+        border-right: 1px solid #087cff;
+        box-shadow: 5px 0 30px rgba(0, 110, 255, 0.15);
+    }
+
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 {
+        color: #38a9ff !important;
+        text-shadow: 0 0 10px rgba(0, 140, 255, 0.7);
+    }
+
+    /* ---------- BOTONES ---------- */
+
+    .stButton > button {
+        background: linear-gradient(135deg, #0066ff, #00aaff);
+        color: white;
+        border: 1px solid #39bfff;
+        border-radius: 8px;
+        padding: 0.65rem 1.5rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        box-shadow:
+            0 0 10px rgba(0, 140, 255, 0.35),
+            inset 0 0 8px rgba(255, 255, 255, 0.08);
+        transition: all 0.2s ease;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow:
+            0 0 20px rgba(0, 160, 255, 0.65),
+            0 0 35px rgba(0, 100, 255, 0.25);
+        border-color: #8bddff;
+    }
+
+    /* ---------- INPUTS ---------- */
+
+    .stTextInput input {
+        background-color: #050c18 !important;
+        color: #dff3ff !important;
+        border: 1px solid #087cff !important;
+        border-radius: 7px !important;
+    }
+
+    .stTextInput input:focus {
+        border-color: #38bfff !important;
+        box-shadow: 0 0 12px rgba(0, 150, 255, 0.45) !important;
+    }
+
+    /* ---------- SLIDER ---------- */
+
+    div[data-baseweb="slider"] {
+        color: #168cff;
+    }
+
+    /* ---------- CAJAS ---------- */
+
+    .futuristic-card {
+        background: linear-gradient(
+            145deg,
+            rgba(5, 17, 34, 0.95),
+            rgba(2, 8, 18, 0.95)
+        );
+        border: 1px solid rgba(0, 140, 255, 0.55);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 12px 0;
+        box-shadow:
+            0 0 20px rgba(0, 110, 255, 0.12),
+            inset 0 0 20px rgba(0, 80, 160, 0.05);
+    }
+
+    .analysis-card {
+        background: linear-gradient(
+            145deg,
+            rgba(4, 15, 30, 0.98),
+            rgba(1, 5, 12, 0.98)
+        );
+        border-left: 3px solid #00aaff;
+        border-top: 1px solid rgba(0, 170, 255, 0.35);
+        border-right: 1px solid rgba(0, 170, 255, 0.2);
+        border-bottom: 1px solid rgba(0, 170, 255, 0.2);
+        border-radius: 10px;
+        padding: 22px;
+        margin-top: 15px;
+        box-shadow: 0 0 25px rgba(0, 130, 255, 0.15);
+    }
+
+    /* ---------- DIVISORES ---------- */
+
+    hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            #087cff,
+            transparent
+        );
+        margin: 30px 0;
+    }
+
+    /* ---------- ALERTAS ---------- */
+
+    div[data-testid="stAlert"] {
+        background-color: rgba(3, 15, 30, 0.9);
+        border: 1px solid #087cff;
+        color: #dff5ff;
+    }
+```
